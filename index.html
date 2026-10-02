@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7a0f1f">
+<title>ノーサンキュー！ オンライン</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E🎁%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --red:#b3132b; --red-d:#7a0f1f; --green:#0f5132; --green-l:#1e7a4c;
+  --gold:#f5c542; --gold-d:#c9971c; --cream:#fff8e7; --ink:#2b1a12;
+  --panel:rgba(255,248,231,.10); --panel-b:rgba(255,236,180,.28);
+  --font:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI","Yu Gothic",Meiryo,system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--font);color:var(--cream);overflow:hidden;
+  background:
+    radial-gradient(circle at 12% 18%,rgba(245,197,66,.18) 0 2px,transparent 3px) 0 0/46px 46px,
+    radial-gradient(circle at 70% 60%,rgba(255,255,255,.10) 0 1.5px,transparent 2.5px) 0 0/34px 34px,
+    radial-gradient(ellipse at 50% -10%,#c8203a 0%,#8e1427 45%,#4d0a16 100%);
+  background-attachment:fixed;
+}
+button{font-family:inherit;cursor:pointer;border:none}
+button:disabled{cursor:default}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center}
+.screen.active{display:flex}
+.col{width:100%;max-width:760px;height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom)}
+
+/* ---------- chips & cards ---------- */
+.chip{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle;flex:none;
+  background:radial-gradient(circle,#ffe58a 0 34%,#e0a91d 36% 52%,#fff2c0 54% 60%,#d39a17 62%);
+  box-shadow:0 1px 0 #8a6410,inset 0 0 0 1.5px #a87a12}
+.chip.lg{width:26px;height:26px}
+.chip.hidden{background:radial-gradient(circle,#777 0 34%,#555 36% 52%,#999 54% 60%,#444 62%);box-shadow:0 1px 0 #222,inset 0 0 0 1.5px #333}
+.mc{display:inline-flex;align-items:center;justify-content:center;width:23px;height:31px;border-radius:4px;
+  background:#fffdf6;color:hsl(var(--h),70%,32%);font-weight:800;font-size:12px;line-height:1;
+  border:2px solid hsl(var(--h),65%,45%);box-shadow:0 1px 2px rgba(0,0,0,.35);flex:none}
+.run{display:inline-flex;gap:1px;padding:1px;border-radius:6px;flex:none}
+.run.multi{background:linear-gradient(135deg,var(--gold),#ffe9a3);box-shadow:0 0 0 1px var(--gold-d)}
+.run.multi .mc:not(:first-child){opacity:.55;transform:scale(.88)}
+.cards{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.none{opacity:.55;font-size:12px}
+
+.bigcard{position:relative;height:var(--ch,150px);aspect-ratio:5/7;border-radius:12px;background:#fffdf6;
+  border:4px solid hsl(var(--h),65%,45%);box-shadow:0 8px 20px rgba(0,0,0,.45),inset 0 0 0 3px #fff, inset 0 0 0 5px hsl(var(--h),60%,85%);
+  display:flex;align-items:center;justify-content:center;color:hsl(var(--h),72%,30%);flex:none}
+.bigcard .num{font-size:calc(var(--ch,150px)*.40);font-weight:900;letter-spacing:-2px;text-shadow:0 2px 0 hsl(var(--h),60%,85%)}
+.bigcard .cn{position:absolute;font-size:calc(var(--ch,150px)*.11);font-weight:800}
+.bigcard .tl{top:6px;left:8px}.bigcard .br{bottom:6px;right:8px;transform:rotate(180deg)}
+.bigcard .bow{position:absolute;top:calc(var(--ch,150px)*.07);left:50%;transform:translateX(-50%);font-size:calc(var(--ch,150px)*.10);opacity:.9}
+.back{background:repeating-linear-gradient(45deg,#9b1b30 0 8px,#b3243b 8px 16px);border:4px solid var(--gold);color:var(--gold);box-shadow:0 6px 14px rgba(0,0,0,.4)}
+.back::before,.back::after{content:"";position:absolute;background:var(--gold)}
+.back::before{left:50%;top:0;bottom:0;width:12%;transform:translateX(-50%)}
+.back::after{top:50%;left:0;right:0;height:9%;transform:translateY(-50%)}
+.flipin{animation:flipin .45s ease-out}
+@keyframes flipin{0%{transform:rotateY(90deg) scale(.8)}100%{transform:none}}
+.bump{animation:bump .35s ease-out}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+/* ---------- setup ---------- */
+#setup .col{overflow-y:auto;padding-bottom:20px}
+.title{text-align:center;margin:18px 0 6px}
+.title h1{margin:0;font-size:clamp(28px,9vw,44px);letter-spacing:1px;white-space:nowrap;color:var(--gold);text-shadow:0 3px 0 #6b0d1a,0 0 18px rgba(245,197,66,.5)}
+.title p{margin:2px 0 0;opacity:.85;font-size:13px}
+.giftrow{display:flex;justify-content:center;gap:8px;margin:10px 0 2px}
+.giftrow .mc{width:30px;height:42px;font-size:16px;transform:rotate(var(--r))}
+.box{background:var(--panel);border:1px solid var(--panel-b);border-radius:16px;padding:12px;margin:10px 0;backdrop-filter:blur(2px)}
+.box h2{margin:0 0 8px;font-size:15px;color:var(--gold)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:10px 0;border-radius:10px;font-size:17px;font-weight:800;background:rgba(0,0,0,.25);color:var(--cream);border:2px solid transparent}
+.seg button.on{background:var(--gold);color:var(--red-d);border-color:#fff3c4}
+.hint{font-size:12px;opacity:.85;margin-top:6px}
+.plist{display:flex;flex-direction:column;gap:8px}
+.prow-set{display:flex;align-items:center;gap:8px}
+.prow-set .no{width:26px;height:26px;border-radius:50%;background:var(--gold);color:var(--red-d);font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+.prow-set input{flex:1;min-width:0;font-family:inherit;font-size:16px;padding:9px 10px;border-radius:10px;border:2px solid transparent;background:#fff8e7;color:var(--ink)}
+.prow-set input:focus{outline:none;border-color:var(--gold)}
+.tog{display:flex;border-radius:10px;overflow:hidden;flex:none;border:2px solid rgba(255,255,255,.25)}
+.tog button{padding:8px 10px;font-size:14px;font-weight:800;background:rgba(0,0,0,.25);color:var(--cream)}
+.tog button.on.h{background:#2f9e5b;color:#fff}.tog button.on.c{background:#8a5a2b;color:#fff}
+.prow-set .no.bear{background:#f1d9b5;font-size:17px}
+.mainbtn{display:block;width:100%;padding:16px;border-radius:16px;font-size:21px;font-weight:900;color:var(--red-d);
+  background:linear-gradient(180deg,#ffe27a,var(--gold) 60%,var(--gold-d));box-shadow:0 5px 0 #8a6410,0 8px 18px rgba(0,0,0,.35);margin-top:6px}
+.mainbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #8a6410}
+.subbtn{display:block;width:100%;padding:12px;border-radius:14px;font-size:16px;font-weight:800;color:var(--cream);background:rgba(0,0,0,.28);border:2px solid var(--panel-b);margin-top:10px}
+
+/* ---------- game ---------- */
+.topbar{display:flex;align-items:center;gap:8px;padding:8px 2px 6px;flex:none}
+.logo{font-weight:900;color:var(--gold);font-size:16px;white-space:nowrap;text-shadow:0 2px 0 #6b0d1a}
+.deckinfo{margin-left:auto;font-size:13px;white-space:nowrap;background:rgba(0,0,0,.28);padding:4px 10px;border-radius:999px}
+.deckinfo b{color:var(--gold);font-size:15px}
+.iconbtn{white-space:nowrap;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(255,248,231,.16);color:var(--cream);border:1px solid var(--panel-b)}
+#players{flex:0 1 auto;min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:5px;align-content:start;padding:2px}
+@media (min-width:700px){#players{grid-template-columns:1fr 1fr}}
+.prow{position:relative;display:grid;grid-template-columns:6.9em 2.7em 1fr 2.6em;align-items:center;gap:6px;
+  padding:5px 8px;border-radius:12px;background:rgba(0,0,0,.22);border:2px solid transparent;min-height:42px;transition:background .25s,border-color .25s}
+.prow.cur{background:rgba(245,197,66,.20);border-color:var(--gold);box-shadow:0 0 12px rgba(245,197,66,.35)}
+.pname{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.pname .nm{font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pname .nm::before{content:"";display:inline-block;width:0;transition:width .2s}
+.prow.cur .nm::before{content:"▶ ";color:var(--gold);width:auto}
+.badge{font-size:10px;font-weight:800;padding:0 5px;border-radius:5px;align-self:flex-start;margin-top:1px}
+.badge.cpu{background:#8a5a2b;color:#fff}.badge.hum{background:#2f9e5b;color:#fff}
+.pchips{display:flex;align-items:center;gap:3px;font-weight:900;font-size:15px}
+.ppts{text-align:right;font-size:12px;opacity:.9;white-space:nowrap}
+.ppts b{font-size:14px}
+.bubble{position:absolute;right:8px;top:-8px;max-width:80%;white-space:nowrap;padding:3px 10px;border-radius:999px;font-weight:900;font-size:13px;pointer-events:none;
+  animation:bub 1.1s ease-out forwards;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.bubble.pass{background:#fff8e7;color:var(--red-d)}.bubble.take{background:var(--gold);color:var(--red-d)}
+@keyframes bub{0%{opacity:0;transform:translateY(6px) scale(.8)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+
+#roundPill{position:absolute;top:4px;left:2px;font-size:11.5px;font-weight:800;background:rgba(0,0,0,.35);border:1px solid var(--panel-b);padding:3px 9px;border-radius:999px;color:var(--gold)}
+#roundPill:empty{display:none}
+#table{position:relative;flex:1 1 0;min-height:140px;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 0 4px;--ch:clamp(108px,19vh,180px)}
+.deck{position:relative;height:calc(var(--ch)*.62);aspect-ratio:5/7;border-radius:9px;flex:none}
+.deck .back{position:absolute;inset:0;border-radius:9px}
+.deck .cnt{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;opacity:.85;white-space:nowrap}
+.pot{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:74px}
+.potchips{display:flex;flex-wrap:wrap;width:74px;justify-content:center;gap:2px;min-height:40px;align-content:flex-end}
+.potnum{font-size:13px;background:rgba(0,0,0,.3);padding:3px 10px;border-radius:999px;white-space:nowrap}
+.potnum b{font-size:20px;color:var(--gold)}
+.cardwrap{perspective:600px}
+#log{flex:none;height:62px;overflow:hidden;font-size:12.5px;line-height:1.55;padding:4px 10px;border-radius:10px;background:rgba(0,0,0,.25);margin:4px 0}
+#log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.65}
+#log div:first-child{opacity:1;font-weight:700}
+#action{flex:none;background:linear-gradient(180deg,rgba(15,81,50,.92),rgba(9,55,33,.95));border:2px solid rgba(245,197,66,.5);border-radius:16px 16px 0 0;padding:8px 10px calc(10px + env(safe-area-inset-bottom));margin:0 -4px}
+#status{text-align:center;font-weight:900;font-size:16px;min-height:22px}
+#status .dots::after{content:"";animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"・"}50%{content:"・・"}75%{content:"・・・"}}
+#myinfo{display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;margin:4px 0 8px;min-height:26px;flex-wrap:wrap}
+#myinfo b{font-size:20px;color:var(--gold)}
+.btns{display:flex;gap:10px}
+.big{flex:1;min-width:0;min-height:72px;border-radius:16px;font-size:23px;white-space:nowrap;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;transition:transform .08s,opacity .2s}
+.big small{font-size:12.5px;font-weight:700;opacity:.9;margin-top:3px}
+.big.take{color:var(--red-d);background:linear-gradient(180deg,#ffe27a,var(--gold) 60%,var(--gold-d));box-shadow:0 5px 0 #8a6410}
+.big.pass{font-size:clamp(15px,4.7vw,21px);color:#fff;background:linear-gradient(180deg,#e2394f,var(--red) 60%,#80101f);box-shadow:0 5px 0 #4d0a16}
+.big:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.5)}
+.big:disabled{opacity:.35;filter:grayscale(.5)}
+.flyer{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-50%)}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(30,4,10,.72);backdrop-filter:blur(3px)}
+.overlay.active{display:flex}
+.modal{width:100%;max-width:520px;max-height:88vh;overflow-y:auto;background:var(--cream);color:var(--ink);border-radius:18px;padding:18px 18px 16px;border:4px solid var(--gold);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.modal h2{margin:0 0 10px;color:var(--red);font-size:21px;text-align:center}
+.modal h3{margin:12px 0 4px;font-size:15px;color:var(--green)}
+.modal p,.modal li{font-size:14px;line-height:1.65;margin:2px 0}
+.modal ul{padding-left:1.2em;margin:4px 0}
+.modal .mainbtn{margin-top:14px}
+.modal .ex{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#f3e7c9;border-radius:10px;padding:8px;margin:6px 0;font-size:13px}
+#handoff{background:radial-gradient(ellipse at 50% 30%,#1e7a4c,#0b3a24 70%);backdrop-filter:none}
+.handoff{text-align:center;max-width:420px}
+.handoff .gift{font-size:64px;animation:bump 1.6s ease-in-out infinite}
+.handoff h2{font-size:28px;color:var(--gold);margin:10px 0;text-shadow:0 2px 0 #062316}
+.handoff p{opacity:.9;line-height:1.6}
+
+/* ---------- end ---------- */
+#end .col{overflow-y:auto;padding-bottom:24px}
+.endtitle{text-align:center;margin:16px 0 4px}
+.endtitle h1{margin:0;font-size:32px;color:var(--gold);text-shadow:0 3px 0 #6b0d1a}
+.winner{font-size:18px;font-weight:900;margin-top:4px}
+table.rank{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:14px}
+table.rank th{font-size:11.5px;font-weight:700;opacity:.85;padding:0 4px;text-align:center}
+table.rank td{background:rgba(0,0,0,.25);padding:7px 5px;text-align:center;vertical-align:middle}
+table.rank td:first-child{border-radius:12px 0 0 12px}table.rank td:last-child{border-radius:0 12px 12px 0}
+table.rank tr.win td{background:rgba(245,197,66,.25)}
+table.rank td.pl{text-align:left}
+table.rank.total td{padding:6px 3px}
+table.rank.total .rs{font-size:13px;color:rgba(255,248,231,.9)}
+table.rank.total .rs.now{font-weight:900;color:#fff3c4}
+table.rank.total .rs.pending{color:rgba(255,248,231,.35)}
+table.rank .nm{font-weight:900;font-size:15px;margin-bottom:4px}
+.medal{display:inline-flex;width:30px;height:30px;border-radius:50%;align-items:center;justify-content:center;font-weight:900;background:rgba(255,255,255,.18)}
+.medal.r1{background:linear-gradient(135deg,#fff1a8,#e6b422);color:#6b4b00}
+.medal.r2{background:linear-gradient(135deg,#ffffff,#b8bec7);color:#3b4250}
+.medal.r3{background:linear-gradient(135deg,#ffd0a8,#c47a3a);color:#4b2400}
+.score{font-size:22px;font-weight:900;color:var(--gold)}
+.calc{font-size:11px;opacity:.85;margin-top:3px}
+.legend{font-size:12px;opacity:.85;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
+.confetti{position:fixed;top:-20px;width:9px;height:14px;z-index:5;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-height:700px){.big{min-height:62px}#log{height:44px}}
+/* ===== online additions ===== */
+#title .col{overflow-y:auto;padding-bottom:20px}
+body.is-host .guestonly{display:none!important}
+body:not(.is-host) .hostonly{display:none!important}
+.title.small{margin:12px 0 2px}.title.small h1{font-size:clamp(26px,8vw,36px)}
+.namebox input,.codein{width:100%;font-family:inherit;font-size:18px;padding:12px;border-radius:12px;border:2px solid transparent;background:#fff8e7;color:var(--ink)}
+.namebox input:focus,.codein:focus{outline:none;border-color:var(--gold)}
+.codein{text-transform:uppercase;letter-spacing:6px;text-align:center;font-weight:900;font-size:24px}
+.or{display:flex;align-items:center;gap:10px;opacity:.8;font-size:13px;margin:6px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--panel-b)}
+.invited{text-align:center;font-weight:800;font-size:16px;margin-bottom:6px}
+.invited b{color:var(--gold);letter-spacing:3px;font-size:22px}
+.codebig{text-align:center;font-size:13px}
+.codebig b{display:block;font-size:42px;letter-spacing:10px;color:var(--gold);font-weight:900;text-shadow:0 3px 0 #6b0d1a;line-height:1.1}
+#qr{background:#fff;border-radius:12px;padding:8px;width:170px;height:170px;margin:8px auto 6px}
+#qr svg{width:100%;height:100%;display:block}
+.url{font-size:11.5px;word-break:break-all;background:rgba(0,0,0,.25);padding:6px 8px;border-radius:8px;text-align:center}
+.row2{display:flex;gap:8px;margin-top:8px}.row2 .subbtn{margin-top:0;flex:1;padding:10px;font-size:15px}
+.seat{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22);margin-bottom:6px;min-height:46px}
+.seat .av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--gold);color:var(--red-d);font-weight:900;flex:none}
+.seat .av.bear{background:#f1d9b5;font-size:18px}
+.seat .nm{flex:1;min-width:0;font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat.offline{opacity:.6}
+.tag{font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:6px;white-space:nowrap;flex:none}
+.tag.host{background:var(--gold);color:var(--red-d)}.tag.you{background:#fff8e7;color:var(--red-d)}
+.tag.off{background:#555;color:#fff}.tag.on{background:#2f9e5b;color:#fff}.tag.cpu{background:#8a5a2b;color:#fff}
+.xbtn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);color:var(--cream);font-size:16px;font-weight:900;flex:none}
+.waitmsg{text-align:center;font-weight:800;padding:14px;border-radius:14px;background:rgba(0,0,0,.25);margin-top:6px}
+.seg.ro button{cursor:default}
+#banner{position:fixed;top:0;left:0;right:0;z-index:90;background:#c62828;color:#fff;text-align:center;font-weight:800;padding:8px 10px calc(8px);font-size:13px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+#banner.show{display:block}
+#toast{position:fixed;bottom:22%;left:50%;transform:translateX(-50%);background:rgba(20,0,5,.9);color:#fff;padding:10px 16px;border-radius:12px;z-index:95;display:none;max-width:88%;text-align:center;font-weight:700;font-size:14px;border:1px solid var(--gold)}
+#toast.show{display:block;animation:bub 3s ease-out forwards}
+.prow.me{box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.prow.offline .nm{opacity:.6}
+.pname .tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:1px}
+.pname .badge{margin-top:0}
+.badge.off{background:#555;color:#fff}.badge.me{background:#fff8e7;color:var(--red-d)}
+.repl{font-size:10.5px;padding:2px 6px;border-radius:7px;background:var(--gold);color:var(--red-d);font-weight:900;margin-top:2px;align-self:flex-start}
+.hostbar{display:none;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;background:#7a1020;border:1px solid var(--gold);border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:13px;font-weight:700}
+.hostbar.show{display:flex}
+.hostbar button{padding:6px 10px;border-radius:8px;font-weight:900;font-size:13px}
+.hostbar .y{background:var(--gold);color:var(--red-d)}.hostbar .n{background:rgba(255,255,255,.18);color:#fff}
+.codechip{font-size:11px;background:rgba(0,0,0,.28);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.codechip b{color:var(--gold);letter-spacing:1px}
+.spin{width:46px;height:46px;border-radius:50%;border:5px solid rgba(255,255,255,.2);border-top-color:var(--gold);margin:6px auto 12px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.small{font-size:12px;opacity:.85}
+@media (max-width:520px){.logo .lt{display:none}.topbar{gap:6px}.iconbtn{padding:6px 9px}}
+.bubble{top:2px}
+.endwait{text-align:center;font-weight:800;margin-top:8px;padding:12px;border-radius:12px;background:rgba(0,0,0,.25)}
+</style>
+</head>
+<body>
+<div id="banner"></div>
+<div id="toast"></div>
+
+<!-- ===================== タイトル（作成・参加） ===================== -->
+<section id="title" class="screen active">
+  <div class="col">
+    <div class="title">
+      <div class="giftrow" id="titleCards"></div>
+      <h1>ノーサンキュー！</h1>
+      <p>オンライン対戦 ― それぞれのスマホで遊べます</p>
+    </div>
+    <div class="box namebox">
+      <h2>あなたのニックネーム</h2>
+      <input id="nameIn" type="text" maxlength="8" placeholder="例：たろう" autocomplete="nickname">
+    </div>
+    <div class="box" id="inviteJoinBox" style="display:none">
+      <div class="invited">部屋 <b id="invCode"></b> に招待されています</div>
+      <button class="mainbtn" id="joinInvitedBtn">部屋に入る</button>
+    </div>
+    <div class="box" id="createBox">
+      <h2>部屋を作る（ホスト）</h2>
+      <button class="mainbtn" id="createBtn">部屋を作る</button>
+      <button class="subbtn" id="resumeBtn" style="display:none"></button>
+      <div class="hint">ホストの端末がゲームを進行します。ゲーム中はこの画面を開いたままにしてください。</div>
+    </div>
+    <div class="box" id="joinBox">
+      <h2>部屋に入る</h2>
+      <input id="codeIn" class="codein" type="text" maxlength="4" placeholder="コード" autocomplete="off" autocapitalize="characters">
+      <button class="mainbtn" id="joinBtn" style="margin-top:10px">部屋に入る</button>
+      <button class="subbtn" id="rejoinBtn" style="display:none"></button>
+    </div>
+    <button class="subbtn" id="rulesBtn1">ルールを見る</button>
+  </div>
+</section>
+
+<!-- ===================== ロビー ===================== -->
+<section id="lobby" class="screen">
+  <div class="col" style="overflow-y:auto;padding-bottom:20px">
+    <div class="title small"><h1>ノーサンキュー！</h1><p>ロビー</p></div>
+    <div class="box">
+      <div class="codebig">部屋コード<b id="codeBig"></b></div>
+      <div id="qr"></div>
+      <div class="url" id="inviteUrl"></div>
+      <div class="row2"><button class="subbtn" id="copyBtn">URLをコピー</button><button class="subbtn" id="shareBtn">共有する</button></div>
+    </div>
+    <div class="box">
+      <h2>プレイヤー <span id="seatCount"></span></h2>
+      <div id="seatList"></div>
+      <button class="subbtn hostonly" id="addCpuBtn">＋ ふーさん🐻を追加</button>
+      <div class="hint" id="seatHint"></div>
+    </div>
+    <div class="box">
+      <h2>対戦の長さ</h2>
+      <div class="seg" id="roundSeg"></div>
+      <div class="hostonly">
+        <h2 style="margin-top:12px">ふーさん🐻の速さ</h2>
+        <div class="seg" id="speedSeg"></div>
+      </div>
+    </div>
+    <button class="mainbtn hostonly" id="startBtn">ゲーム開始！</button>
+    <div class="waitmsg guestonly">ホストがゲームを開始するのを待っています<span class="dots"></span></div>
+    <button class="subbtn" id="leaveBtn1">部屋を出る</button>
+  </div>
+</section>
+
+<!-- ===================== ゲーム ===================== -->
+<section id="game" class="screen">
+  <div class="col">
+    <header class="topbar">
+      <span class="logo">🎁<span class="lt"> ノーサンキュー！</span></span>
+      <span class="codechip">部屋 <b id="codeChip"></b></span>
+      <span class="deckinfo">山札 <b id="deckLeft">0</b>枚</span>
+      <button class="iconbtn" id="rulesBtn2">ルール</button>
+      <button class="iconbtn" id="menuBtn">…</button>
+    </header>
+    <div id="players"></div>
+    <div id="table">
+      <div id="roundPill"></div>
+      <div class="deck" id="deckEl"><div class="back"></div><div class="cnt" id="deckCnt"></div></div>
+      <div class="cardwrap"><div id="curCard"></div></div>
+      <div class="pot">
+        <div class="potchips" id="potChips"></div>
+        <div class="potnum" id="potNum">チップ <b>0</b> 枚</div>
+      </div>
+    </div>
+    <div id="log"></div>
+    <div id="action">
+      <div class="hostbar" id="hostbar"></div>
+      <div id="status"></div>
+      <div id="myinfo"></div>
+      <div class="btns">
+        <button class="big take" id="takeBtn" disabled>もらう<small id="takeSub">&nbsp;</small></button>
+        <button class="big pass" id="passBtn" disabled>パス（チップ1枚）<small id="passSub">&nbsp;</small></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 結果 ===================== -->
+<section id="end" class="screen">
+  <div class="col">
+    <div class="endtitle">
+      <h1 id="endTitle">ゲーム終了！</h1>
+      <div class="winner" id="winnerText"></div>
+    </div>
+    <div class="box" id="totalBox">
+      <h2 id="totalTitle">通算成績</h2>
+      <table class="rank total"><thead id="totalHead"></thead><tbody id="totalBody"></tbody></table>
+      <div class="hint" id="totalHint"></div>
+    </div>
+    <div class="box" id="roundBox">
+      <h2 id="roundResTitle">最終順位</h2>
+      <table class="rank">
+        <thead><tr><th>順位</th><th style="text-align:left">プレイヤー／カード</th><th>カード点</th><th>チップ</th><th>得点</th></tr></thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+      <div class="legend"><span class="run multi"><span class="mc" style="--h:60">20</span><span class="mc" style="--h:60">21</span></span>＝連続した数字（一番小さい数字だけ点数になります）</div>
+    </div>
+    <div class="box">
+      <h2>抜かれていた9枚のカード</h2>
+      <div class="cards" id="removedCards"></div>
+    </div>
+    <button class="mainbtn hostonly" id="nextBtn">次の回戦へ</button>
+    <div class="endwait guestonly" id="endWait"></div>
+    <button class="subbtn" id="leaveBtn2">部屋を出る</button>
+  </div>
+</section>
+
+<!-- ===================== オーバーレイ ===================== -->
+<div class="overlay" id="rulesModal">
+  <div class="modal">
+    <h2>🎁 ノーサンキュー！のルール</h2>
+    <h3>目的</h3>
+    <p>ゲーム終了時の<b>得点がいちばん低い人</b>の勝ちです。</p>
+    <h3>準備</h3>
+    <ul>
+      <li>3〜35のカード33枚から<b>9枚を誰にも見せずに抜き</b>、残り24枚で遊びます。</li>
+      <li>チップ：3〜5人は各11枚、6人は各9枚、7人は各7枚。</li>
+      <li>チップの枚数は<b>秘密</b>です（自分のスマホにだけ表示されます）。もらったカードは全員に公開されます。</li>
+    </ul>
+    <h3>手番</h3>
+    <ul>
+      <li><b>もらう</b>：そのカードと、上に置かれたチップを全部もらいます。</li>
+      <li><b>パス</b>：チップを1枚カードの上に置き、次の人に回します。</li>
+    </ul>
+    <p>チップがない人は必ず「もらう」です。カードをもらった人が次のカードをめくり、そのまま最初に選びます。</p>
+    <h3>終了と得点</h3>
+    <ul>
+      <li>山札がなくなったら終了。もらったカードの数字の合計が得点（失点）です。</li>
+      <li>ただし<b>連続した数字</b>は、その中で<b>一番小さい数字だけ</b>を数えます。</li>
+      <li>チップ1枚につき1点引きます。同点は同順位です。</li>
+      <li>複数回戦では毎回配り直し、<b>合計得点がいちばん低い人が総合優勝</b>です（スタートプレイヤーは回戦ごとに交代）。</li>
+    </ul>
+    <div class="ex"><span>例：</span><span class="run multi"><span class="mc" style="--h:70">21</span><span class="mc" style="--h:70">22</span><span class="mc" style="--h:70">23</span></span><span class="run"><span class="mc" style="--h:30">30</span></span><span>＋チップ5枚 → 21＋30−5＝<b>46点</b></span></div>
+    <h3>オンライン対戦について</h3>
+    <ul>
+      <li>ホストが部屋を作り、コードかURL（QRコード）で招待します。人数が足りないときは「ふーさん🐻」（CPU）を追加できます。</li>
+      <li>ホストの画面がゲームを進行します。ホストはゲーム中、画面を閉じないでください。</li>
+      <li>接続が切れても、同じニックネームで入り直すと元の席に戻れます。</li>
+    </ul>
+    <button class="mainbtn" id="rulesClose">とじる</button>
+  </div>
+</div>
+
+<div class="overlay" id="confirmModal">
+  <div class="modal" style="max-width:360px;text-align:center">
+    <h2 id="cfTitle"></h2>
+    <p id="cfText"></p>
+    <button class="mainbtn" id="cfYes"></button>
+    <button class="subbtn" id="cfNo" style="color:var(--ink);background:#eadfc4">キャンセル</button>
+  </div>
+</div>
+
+<div class="overlay" id="connecting">
+  <div class="handoff">
+    <div class="spin"></div>
+    <h2 id="connTitle" style="font-size:22px">接続中…</h2>
+    <p id="connText"></p>
+    <button class="subbtn" id="connCancel" style="max-width:240px;margin:14px auto 0">キャンセル</button>
+  </div>
+</div>
+
+<script src="vendor/peerjs.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="logic.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
