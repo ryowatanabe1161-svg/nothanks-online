@@ -235,11 +235,17 @@ body:not(.is-host) .hostonly{display:none!important}
 @media (max-width:520px){.logo .lt{display:none}.topbar{gap:6px}.iconbtn{padding:6px 9px}}
 .bubble{top:2px}
 .endwait{text-align:center;font-weight:800;margin-top:8px;padding:12px;border-radius:12px;background:rgba(0,0,0,.25)}
+#lobbyReqBar{position:fixed;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translateX(-50%);z-index:85;width:min(520px,calc(100% - 20px));display:none;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;
+  background:#eef0ff;color:#2a2a4a;border:2px solid #8f99ff;border-radius:14px;padding:7px 9px;font-size:13px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+#lobbyReqBar.show{display:flex}
+#lobbyReqBar button{padding:6px 11px;border-radius:10px;font-weight:900;font-size:13px;background:#5b67f0;color:#fff;border:none}
+#lobbyReqBar button.ghost{background:#fff;color:#555;border:2px solid #ccd}
+#menuModal .mainbtn{font-size:17px}
 </style>
 </head>
 <body>
 <div id="banner"></div>
-<div id="toast"></div>
+<div id="toast"></div><div id="lobbyReqBar" role="status"></div>
 
 <!-- ===================== タイトル（作成・参加） ===================== -->
 <section id="title" class="screen active">
@@ -399,6 +405,19 @@ body:not(.is-host) .hostonly{display:none!important}
       <li>接続が切れても、同じニックネームで入り直すと元の席に戻れます。</li>
     </ul>
     <button class="mainbtn" id="rulesClose">とじる</button>
+  </div>
+</div>
+
+<div class="overlay" id="menuModal">
+  <div class="modal" style="max-width:360px;text-align:center">
+    <h2>メニュー</h2>
+    <button class="mainbtn hostonly" id="menuAbort">⏸️ 中断してロビーに戻る</button>
+    <div class="hint hostonly" style="margin-top:6px">部屋コード・参加者・ふーさん🐻（CPU）・設定はそのままで、全員がロビーに戻ります。</div>
+    <button class="mainbtn guestonly" id="menuReq">🙋 ロビーに戻りたい（ホストに伝える）</button>
+    <div class="hint guestonly" style="margin-top:6px">ゲームを中断できるのはホストだけです。</div>
+    <button class="subbtn" id="menuRules" style="color:var(--ink);background:#eadfc4">📖 ルールを見る</button>
+    <button class="subbtn" id="menuLeave" style="color:var(--ink);background:#eadfc4"><span class="hostonly">部屋を閉じる</span><span class="guestonly">退出する</span></button>
+    <button class="subbtn" id="menuClose" style="color:var(--ink);background:#eadfc4">とじる</button>
   </div>
 </div>
 
