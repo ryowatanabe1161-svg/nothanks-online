@@ -417,6 +417,7 @@ body:not(.is-host) .hostonly{display:none!important}
     <div class="hint guestonly" style="margin-top:6px">ゲームを中断できるのはホストだけです。</div>
     <button class="subbtn" id="menuRules" style="color:var(--ink);background:#eadfc4">📖 ルールを見る</button>
     <button class="subbtn" id="menuLeave" style="color:var(--ink);background:#eadfc4"><span class="hostonly">部屋を閉じる</span><span class="guestonly">退出する</span></button>
+    <button class="subbtn" id="menuHiroba">🏠 ひろばへ</button>
     <button class="subbtn" id="menuClose" style="color:var(--ink);background:#eadfc4">とじる</button>
   </div>
 </div>
@@ -444,5 +445,36 @@ body:not(.is-host) .hostonly{display:none!important}
 <script src="logic.js"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
+
+<a id="hirobaFab" class="hiroba-fab" href="https://ryowatanabe1161-svg.github.io/fuusan-games/" hidden>🏠 ひろばへ</a>
+<style>
+.hiroba-fab{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));z-index:45;padding:7px 12px;border-radius:999px;background:rgba(255,253,247,.94);border:2px solid #d9c9a8;font:900 13px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#2a2522;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.14);-webkit-tap-highlight-color:transparent}
+.hiroba-fab[hidden]{display:none!important}
+@media (display-mode:standalone){.hiroba-fab{display:inline-block}}
+</style>
+<script>
+(function(){
+  var U='https://ryowatanabe1161-svg.github.io/fuusan-games/';
+  function want(){
+    try{ if(new URLSearchParams(location.search).get('from')==='portal') return true; }catch(e){}
+    try{ if(window.matchMedia('(display-mode: standalone)').matches) return true; }catch(e){}
+    if(navigator.standalone) return true;
+    return false;
+  }
+  function go(e){ if(e) e.preventDefault(); location.href=U; }
+  function wire(){
+    var fab=document.getElementById('hirobaFab');
+    if(fab){ fab.hidden=!want(); fab.href=U; fab.addEventListener('click',go); }
+    var b=document.getElementById('menuHiroba');
+    if(b && !b._hiroba){ b._hiroba=1; b.addEventListener('click',function(){ location.href=U; }); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
+  document.addEventListener('click',function(e){
+    var t=e.target && e.target.closest && e.target.closest('#menuHiroba');
+    if(t){ e.preventDefault(); location.href=U; }
+  },true);
+})();
+</script>
+
 </body>
 </html>
